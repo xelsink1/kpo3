@@ -1,0 +1,71 @@
+services:
+  postgres_storing:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: storing_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_storing_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d storing_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_analysis:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: analysis_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_analysis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d analysis_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  file_storing:
+    build: ./file_storing
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres_storing:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:pass@postgres_storing:5432/storing_db
+    volumes:
+      - file_storing_files:/app/files
+
+  file_analysis:
+    build: ./file_analysis
+    ports:
+      - "8002:8000"
+    depends_on:
+      postgres_analysis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:pass@postgres_analysis:5432/analysis_db
+      STORING_URL: http://file_storing:8000
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8000:8000"
+    depends_on:
+      - file_storing
+      - file_analysis
+    environment:
+      STORING_URL: http://file_storing:8000
+      ANALYSIS_URL: http://file_analysis:8000
+
+volumes:
+  postgres_storing_data:
+  postgres_analysis_data:
+  file_storing_files:
