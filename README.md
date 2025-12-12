@@ -66,10 +66,11 @@ FastAPI предоставляет автоматическую Swagger-доку
    ```
    curl -X 'POST' \
       'http://localhost:8000/upload' \
-      -F 'student_id=dsds' \
-      -F 'assignment_id=1' \
+      -F 'student_id=student1' \
+      -F 'assignment_id=math_homework_1' \
       -F 'file=@text1.txt'
    ```
+   - для тетсирования за место text1 можно подставить любой из доступных файлов в репозитории text2/text3/text4, 
    - student_id: уникальный идентификатор студента (строка, например, "student1").
    - assignment_id: идентификатор задания (строка, например, "math_homework_1").
    - file: файл контрольной работы (например, text1.txt).
@@ -77,16 +78,17 @@ FastAPI предоставляет автоматическую Swagger-доку
 
 2. **Загрузка второго файла для теста плагиата** (тот же text1.txt, но другой студент):
    ```
-   curl -X POST "http://localhost:8000/upload" \
-     -F "student_id=student2" \
-     -F "assignment_id=math_homework_1" \
-     -F "file=@text1.txt"
+   curl -X 'POST' \
+      'http://localhost:8000/upload' \
+      -F 'student_id=student2' \
+      -F 'assignment_id=math_homework_1' \
+      -F 'file=@text1.txt'
    ```
    Ответ: JSON с plagiarism=true и matched_work_id (ID первой работы).
 
 3. **Получение отчета по работе** (замените 1 на work_id из ответа):
    ```
-   curl -X GET "http://localhost:8000/works/1/reports"
+   curl -X GET 'http://localhost:8000/works/1/reports'
    ```
    Ответ: JSON с деталями отчета (plagiarism, timestamp, matched_work_id).
 
