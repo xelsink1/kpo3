@@ -62,29 +62,40 @@ FastAPI предоставляет автоматическую Swagger-доку
 
 #### Примеры с curl
 
-1. **Загрузка работы** (через Gateway):
+1. **Загрузка работы** (через Gateway, используя файл text1.txt из проекта):
+   ```
+   curl -X 'POST' \
+      'http://localhost:8000/upload' \
+      -F 'student_id=dsds' \
+      -F 'assignment_id=1' \
+      -F 'file=@text1.txt'
+   ```
+   - student_id: уникальный идентификатор студента (строка, например, "student1").
+   - assignment_id: идентификатор задания (строка, например, "math_homework_1").
+   - file: файл контрольной работы (например, text1.txt).
+   Ответ: JSON с work_id, report_id, plagiarism (для первого файла будет false).
+
+2. **Загрузка второго файла для теста плагиата** (тот же text1.txt, но другой студент):
    ```
    curl -X POST "http://localhost:8000/upload" \
-     -F "student_id=student1" \
-     -F "assignment_id=assign1" \
-     -F "file=@/path/to/your/file.txt"
+     -F "student_id=student2" \
+     -F "assignment_id=math_homework_1" \
+     -F "file=@text1.txt"
    ```
-   - student_id: уникальный идентификатор студента (строка, например, "student123").
-   - assignment_id: идентификатор задания (строка, например, "math_homework_1").
-   - file: файл контрольной работы (любой текст или бинарный файл).
-   Ответ: JSON с work_id, report_id, plagiarism.
+   Ответ: JSON с plagiarism=true и matched_work_id (ID первой работы).
 
-2. **Получение отчета**:
+3. **Получение отчета по работе** (замените 1 на work_id из ответа):
    ```
    curl -X GET "http://localhost:8000/works/1/reports"
    ```
-   Ответ: JSON с деталями отчета.
+   Ответ: JSON с деталями отчета (plagiarism, timestamp, matched_work_id).
 
 #### Тестирование плагиата
 
-- Загрузите один и тот же файл дважды (разные студенты).
+- Загрузите text1.txt дважды с разными student_id.
 - Первый: plagiarism=false
 - Второй: plagiarism=true, matched_work_id=первый_id
+- Для разных файлов (text1.txt и text2.txt): plagiarism=false.
 
 ### Структура проекта
 
